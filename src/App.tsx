@@ -1,11 +1,14 @@
-function App() {
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LoginPage from './pages/LoginPage.tsx';
+
+const App = () => {
   return (
-    <>
-      <div className="min-h-screen flex justify-center items-center">
-        <h1 className="text-3xl font-bold text-blue-600">React + Vite + TypeScript + Tailwind</h1>
-      </div>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" Component={LoginPage} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
