@@ -12,6 +12,9 @@ interface BusinessSignupDetailsForm {
 
 const BusinessSignupDetails = () => {
   const navigate = useNavigate();
+  const [onlineSalesRegistrationNumberError, setOnlineSalesRegistrationNumberError] = useState<
+    string | null
+  >(null);
   const [businessSignupDetailData, setBusinessSignupDetailData] =
     useState<BusinessSignupDetailsForm>({
       businessAddress: '',
@@ -40,6 +43,14 @@ const BusinessSignupDetails = () => {
       ...prev,
       [name]: value,
     }));
+
+    if (name === 'onlineSalesRegistrationNumber') {
+      if (!value.match(/^\d{12}$/)) {
+        setOnlineSalesRegistrationNumberError('올바른 형식이 아닙니다.');
+      } else {
+        setOnlineSalesRegistrationNumberError(null);
+      }
+    }
   };
 
   const businessSignupDetails = () => {
@@ -50,7 +61,7 @@ const BusinessSignupDetails = () => {
     <div className="w-full h-[calc(100vh-3.75rem)] bg-white flex items-center justify-start flex-col">
       <div className="p-24 w-fit">
         <p className="mb-1 text-3xl font-bold text-black-800">사업자 회원 추가 정보 입력</p>
-        <p className="mb-16 text-black-400">사업자 회원으로 전용 특가 혜택을 누려보세요.</p>
+        <p className="mb-16 text-black-400">입점에 필요한 추가 정보를 입력해주세요.</p>
 
         <form>
           <InputForm
@@ -70,6 +81,7 @@ const BusinessSignupDetails = () => {
             name="onlineSalesRegistrationNumber"
             onChange={handleInputChange}
             tip="하이픈(-)을 빼고 입력해주세요."
+            error={onlineSalesRegistrationNumberError}
           />
 
           <p className="mb-2 text-sm text-black-400">은행 선택</p>

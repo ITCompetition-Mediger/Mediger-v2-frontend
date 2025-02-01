@@ -25,6 +25,17 @@ const BusinessSignup = () => {
     businessOwnerName: '',
     companyName: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [businessRegistrationNumberError, setBusinessRegistrationNumberError] = useState<
+    string | null
+  >(null);
+  const [businessStartDateError, setBusinessStartDateError] = useState<string | null>(null);
+  const [showVerificationInput, setShowVerificationInput] = useState<boolean>(false);
+  const [verificationCode, setVerificationCode] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,6 +43,65 @@ const BusinessSignup = () => {
       ...prev,
       [name]: value,
     }));
+
+    if (name === 'account') {
+      if (!value.match(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/)) {
+        setAccountError('올바른 형식이 아닙니다.');
+      } else {
+        setAccountError(null);
+      }
+    }
+
+    if (name === 'password') {
+      if (!value.match(/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/)) {
+        setPasswordError('올바른 형식이 아닙니다.');
+      } else {
+        setPasswordError(null);
+      }
+    }
+
+    if (name === 'email') {
+      if (!value.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
+        setEmailError('올바른 형식이 아닙니다.');
+      } else {
+        setEmailError(null);
+      }
+    }
+
+    if (name === 'businessRegistrationNumber') {
+      if (!value.match(/^\d{10}$/)) {
+        setBusinessRegistrationNumberError('올바른 형식이 아닙니다.');
+      } else {
+        setBusinessRegistrationNumberError(null);
+      }
+    }
+
+    if (name === 'businessStartDate') {
+      if (!value.match(/^\d{4}\.(0?[1-9]|1[0-2])\.(0?[1-9]|[12][0-9]|3[01])$/)) {
+        setBusinessStartDateError('올바른 형식이 아닙니다.');
+      } else {
+        setBusinessStartDateError(null);
+      }
+    }
+  };
+
+  const validatePasswordMatch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setConfirmPassword(value);
+
+    if (businessSignupData.password !== value) {
+      setPasswordMatchError('비밀번호가 일치하지 않습니다.');
+    } else {
+      setPasswordMatchError(null);
+    }
+  };
+
+  const handleRequestVerification = () => {
+    setShowVerificationInput(true);
+  };
+
+  const handleVerificationCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVerificationCode(e.target.value);
   };
 
   const businessSignup = () => {
@@ -61,7 +131,8 @@ const BusinessSignup = () => {
               name="account"
               value={businessSignupData.account}
               onChange={handleInputChange}
-              tip="영어 대/소문자 포함 8자 이상으로 입력해주세요."
+              tip="영어 대문자 또는 소문자, 숫자 포함 8자 이상으로 입력해주세요."
+              error={accountError}
             />
             <div
               className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
@@ -79,13 +150,16 @@ const BusinessSignup = () => {
             value={businessSignupData.password}
             onChange={handleInputChange}
             tip="숫자, 영어 대/소문자, 특수문자 포함 8자 이상으로 입력해주세요."
+            error={passwordError}
           />
 
           <InputForm
             label="비밀번호 확인"
             type="password"
             placeholder="********"
-            error="비밀번호가 일치하지 않습니다."
+            value={confirmPassword}
+            onChange={validatePasswordMatch}
+            error={passwordMatchError}
           />
 
           <div className="relative flex items-center">
@@ -96,14 +170,26 @@ const BusinessSignup = () => {
               name="email"
               value={businessSignupData.email}
               onChange={handleInputChange}
+              error={emailError}
             />
             <div
+              onClick={handleRequestVerification}
               className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
               style={{ top: '35px', right: '-90px' }}
             >
               인증 코드
             </div>
           </div>
+
+          {showVerificationInput && (
+            <InputForm
+              label="인증 코드"
+              type="text"
+              placeholder="인증 코드를 입력하세요."
+              value={verificationCode}
+              onChange={handleVerificationCodeChange}
+            />
+          )}
 
           <InputForm
             label="법인명 또는 상호"
@@ -117,11 +203,12 @@ const BusinessSignup = () => {
           <InputForm
             label="사업자 등록 번호"
             type="text"
-            placeholder="123-45-67890"
+            placeholder="1234567890"
             name="businessRegistrationNumber"
             value={businessSignupData.businessRegistrationNumber}
             onChange={handleInputChange}
             tip="하이픈(-)을 빼고 입력해주세요."
+            error={businessRegistrationNumberError}
           />
 
           <InputForm
@@ -131,6 +218,8 @@ const BusinessSignup = () => {
             name="businessStartDate"
             value={businessSignupData.businessStartDate}
             onChange={handleInputChange}
+            tip="연도.월.일 형식으로 입력해주세요."
+            error={businessStartDateError}
           />
 
           <InputForm

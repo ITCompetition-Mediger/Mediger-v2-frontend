@@ -12,7 +12,6 @@ interface PersonalSignupForm {
 
 const PersonalSignup = () => {
   const navigate = useNavigate();
-
   const [personalSignupData, setPersonalSignupData] = useState<PersonalSignupForm>({
     account: '',
     password: '',
@@ -20,6 +19,14 @@ const PersonalSignup = () => {
     email: '',
     phone: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [showVerificationInput, setShowVerificationInput] = useState<boolean>(false);
+  const [verificationCode, setVerificationCode] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,6 +34,57 @@ const PersonalSignup = () => {
       ...prev,
       [name]: value,
     }));
+
+    if (name === 'account') {
+      if (!value.match(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/)) {
+        setAccountError('올바른 형식이 아닙니다.');
+      } else {
+        setAccountError(null);
+      }
+    }
+
+    if (name === 'password') {
+      if (!value.match(/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/)) {
+        setPasswordError('올바른 형식이 아닙니다.');
+      } else {
+        setPasswordError(null);
+      }
+    }
+
+    if (name === 'phone') {
+      if (!value.match(/^\d{11}$/)) {
+        setPhoneError('올바른 형식이 아닙니다.');
+      } else {
+        setPhoneError(null);
+      }
+    }
+
+    if (name === 'email') {
+      if (!value.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
+        setEmailError('올바른 형식이 아닙니다.');
+      } else {
+        setEmailError(null);
+      }
+    }
+  };
+
+  const validatePasswordMatch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setConfirmPassword(value);
+
+    if (personalSignupData.password !== value) {
+      setPasswordMatchError('비밀번호가 일치하지 않습니다.');
+    } else {
+      setPasswordMatchError(null);
+    }
+  };
+
+  const handleRequestVerification = () => {
+    setShowVerificationInput(true);
+  };
+
+  const handleVerificationCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVerificationCode(e.target.value);
   };
 
   const personalSignup = () => {
@@ -56,8 +114,9 @@ const PersonalSignup = () => {
               placeholder="ID"
               value={personalSignupData.account}
               name="account"
-              tip="영어 대/소문자 포함 8자 이상으로 입력해주세요."
+              tip="영어 대문자 또는 소문자, 숫자 포함 8자 이상으로 입력해주세요."
               onChange={handleInputChange}
+              error={accountError}
             />
             <div
               className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
@@ -75,32 +134,47 @@ const PersonalSignup = () => {
             name="password"
             tip="숫자, 영어 대/소문자, 특수문자 포함 8자 이상으로 입력해주세요."
             onChange={handleInputChange}
+            error={passwordError}
           />
 
           <InputForm
             label="비밀번호 확인"
             type="password"
+            value={confirmPassword}
+            onChange={validatePasswordMatch}
             placeholder="********"
-            error="비밀번호가 일치하지 않습니다."
+            error={passwordMatchError}
           />
 
           <div className="relative flex items-center">
             <InputForm
               label="휴대폰 번호"
               type="text"
-              placeholder="010-0000-0000"
+              placeholder="01000000000"
               value={personalSignupData.phone}
               name="phone"
               tip="하이픈(-)을 빼고 입력해주세요."
               onChange={handleInputChange}
+              error={phoneError}
             />
             <div
+              onClick={handleRequestVerification}
               className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
               style={{ top: '35px', right: '-90px' }}
             >
               인증 번호
             </div>
           </div>
+
+          {showVerificationInput && (
+            <InputForm
+              label="인증 코드"
+              type="text"
+              placeholder="인증 코드를 입력하세요."
+              value={verificationCode}
+              onChange={handleVerificationCodeChange}
+            />
+          )}
 
           <InputForm
             label="이메일"
@@ -109,6 +183,7 @@ const PersonalSignup = () => {
             value={personalSignupData.email}
             name="email"
             onChange={handleInputChange}
+            error={emailError}
           />
         </form>
 

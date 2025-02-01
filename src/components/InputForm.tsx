@@ -8,7 +8,7 @@ interface InputFormProps {
   name?: string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   tip?: string;
-  error?: string;
+  error?: string | null;
 }
 
 function InputForm(props: InputFormProps) {
