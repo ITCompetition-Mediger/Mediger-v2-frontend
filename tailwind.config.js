@@ -36,6 +36,7 @@ export default {
         800: '#303030', // text
       },
       white: '#fefefe', // background
+      red: '#E45757', // error
     },
     boxShadow: {
       xs: '0px 0px 10px rgba(0, 0, 0, 0.03)',

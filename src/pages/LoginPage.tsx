@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const Login = () => {
   return (
     <div className="w-full h-[calc(100vh-3.75rem)] bg-gradient-to-b from-white to-main-color-200 flex items-center justify-center ">
@@ -23,10 +25,10 @@ const Login = () => {
         </div>
         <div className="flex justify-between px-8 mt-10">
           <p className="text-sm underline cursor-pointer underline-offset-2 text-black-400">
-            회원가입
+            <Link to="/signup/personal">회원가입 →</Link>
           </p>
           <p className="text-sm underline cursor-pointer underline-offset-2 text-black-400">
-            아이디/비밀번호 찾기
+            아이디/비밀번호 찾기 →
           </p>
         </div>
       </div>
