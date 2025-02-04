@@ -1,6 +1,6 @@
 const Navbar = () => {
   return (
-    <div className="sticky top-0 flex justify-between p-4 px-64 bg-white">
+    <div className="sticky top-0 z-50 flex justify-between p-4 px-64 bg-white">
       <img
         src="/images/mediger_logo_notbg.png"
         alt="Logo"
