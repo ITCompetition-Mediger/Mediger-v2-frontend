@@ -107,7 +107,7 @@ const PersonalSignupDetails = () => {
           <label className="mb-2 text-sm text-black-400">
             건강 고민
             <span
-              className={`ml-1 ${maxSelectionError ? 'text-red underline underline-offset-4' : ''} `}
+              className={`ml-1 ${maxSelectionError ? 'text-red-500 underline underline-offset-4' : ''} `}
             >
               (최대 5개 선택)
             </span>

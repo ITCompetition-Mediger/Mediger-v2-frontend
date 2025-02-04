@@ -26,6 +26,7 @@ export default {
         800: '#9C932B',
       },
       black: {
+        50: '#F7F7F7', // light gray
         100: '#F3F3F3', // stroke
         200: '#CCCCCC',
         300: '#B3B3B3',
@@ -36,7 +37,10 @@ export default {
         800: '#303030', // text
       },
       white: '#fefefe', // background
-      red: '#E45757', // error
+      red: {
+        500: '#E45757', // error
+        100: '#FFF6F6',
+      },
     },
     boxShadow: {
       xs: '0px 0px 10px rgba(0, 0, 0, 0.03)',

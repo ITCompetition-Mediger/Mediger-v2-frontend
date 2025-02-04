@@ -1,4 +1,5 @@
 import React from 'react';
+import { UseFormRegisterReturn } from 'react-hook-form';
 
 interface InputFormProps {
   label: string;
@@ -9,31 +10,33 @@ interface InputFormProps {
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   tip?: string;
   error?: string | null;
+  register?: UseFormRegisterReturn;
 }
 
-function InputForm(props: InputFormProps) {
-  const inputBorderClass = props.error ? 'border-red' : 'border-black-400';
+function InputForm({ label, type, placeholder, value, tip, error, register }: InputFormProps) {
+  const inputBorderClass = error
+    ? 'border-red-500 focus:bg-red-100 focus:border-red-500'
+    : 'border-black-400';
 
   return (
     <div className="flex flex-col justify-start mb-8">
-      <label className="text-sm text-black-400">{props.label}</label>
+      <label className="text-sm text-black-400">{label}</label>
       <input
-        type={props.type}
-        value={props.value}
-        name={props.name}
-        onChange={props.onChange}
-        placeholder={props.placeholder}
-        className={`p-4 my-1 w-96 focus:outline-none placeholder:text-black-400 text-black-800 border-b-2 focus:border-main-color-500 ${inputBorderClass} transition-colors duration-600`}
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        className={`p-4 my-1 w-96 focus:outline-none placeholder:text-black-400 text-black-800 border-b-2 focus:bg-black-50 focus:border-main-color-500 ${inputBorderClass} transition-colors duration-600`}
+        {...register}
       />
 
-      {props.tip && (
+      {error && <p className="text-sm text-red-500">{error}</p>}
+
+      {tip && (
         <p className="text-sm text-black-400">
           <span className="text-main-color-500">Tip! </span>
-          {props.tip}
+          {tip}
         </p>
       )}
-
-      {props.error && <p className="text-sm text-red">{props.error}</p>}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import InputForm from '../components/InputForm';
 import { useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
 
 interface BusinessSignupForm {
   name: string;
@@ -11,116 +12,45 @@ interface BusinessSignupForm {
   businessStartDate: string;
   businessOwnerName: string;
   companyName: string;
+  passwordConfirm: string;
+  code: string;
 }
 
 const BusinessSignup = () => {
   const navigate = useNavigate();
-  const [businessSignupData, setBusinessSignupData] = useState<BusinessSignupForm>({
-    name: '',
-    account: '',
-    password: '',
-    email: '',
-    businessRegistrationNumber: '',
-    businessStartDate: '',
-    businessOwnerName: '',
-    companyName: '',
-  });
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [accountError, setAccountError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [businessRegistrationNumberError, setBusinessRegistrationNumberError] = useState<
-    string | null
-  >(null);
-  const [businessStartDateError, setBusinessStartDateError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<BusinessSignupForm>();
+
+  const onSubmit: SubmitHandler<BusinessSignupForm> = data => {
+    console.log(data);
+    navigate('/signup/business/details');
+  };
+
   const [showVerificationInput, setShowVerificationInput] = useState<boolean>(false);
-  const [verificationCode, setVerificationCode] = useState<string>('');
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setBusinessSignupData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (name === 'account') {
-      if (!value.match(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/)) {
-        setAccountError('올바른 형식이 아닙니다.');
-      } else {
-        setAccountError(null);
-      }
-    }
-
-    if (name === 'password') {
-      if (!value.match(/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/)) {
-        setPasswordError('올바른 형식이 아닙니다.');
-      } else {
-        setPasswordError(null);
-      }
-    }
-
-    if (name === 'email') {
-      if (!value.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
-        setEmailError('올바른 형식이 아닙니다.');
-      } else {
-        setEmailError(null);
-      }
-    }
-
-    if (name === 'businessRegistrationNumber') {
-      if (!value.match(/^\d{10}$/)) {
-        setBusinessRegistrationNumberError('올바른 형식이 아닙니다.');
-      } else {
-        setBusinessRegistrationNumberError(null);
-      }
-    }
-
-    if (name === 'businessStartDate') {
-      if (!value.match(/^\d{4}\.(0?[1-9]|1[0-2])\.(0?[1-9]|[12][0-9]|3[01])$/)) {
-        setBusinessStartDateError('올바른 형식이 아닙니다.');
-      } else {
-        setBusinessStartDateError(null);
-      }
-    }
-  };
-
-  const validatePasswordMatch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
-
-    if (businessSignupData.password !== value) {
-      setPasswordMatchError('비밀번호가 일치하지 않습니다.');
-    } else {
-      setPasswordMatchError(null);
-    }
-  };
 
   const handleRequestVerification = () => {
     setShowVerificationInput(true);
   };
 
-  const handleVerificationCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVerificationCode(e.target.value);
-  };
-
-  const businessSignup = () => {
-    navigate('/signup/business/details');
-  };
   return (
     <div className="w-full h-[calc(100vh-3.75rem)] bg-white flex items-center justify-start flex-col">
       <div className="p-24 w-fit">
         <p className="mb-1 text-3xl font-bold text-black-800">사업자 회원가입</p>
         <p className="mb-16 text-black-400">사업자 회원으로 전용 특가 혜택을 누려보세요.</p>
 
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <InputForm
             label="이름"
             type="text"
             placeholder="홍길동"
-            name="name"
-            value={businessSignupData.name}
-            onChange={handleInputChange}
+            error={errors.name?.message}
+            register={register('name', {
+              required: '이름을 입력해주세요.',
+            })}
           />
 
           <div className="relative flex items-center">
@@ -128,11 +58,15 @@ const BusinessSignup = () => {
               label="아이디"
               type="text"
               placeholder="ID"
-              name="account"
-              value={businessSignupData.account}
-              onChange={handleInputChange}
               tip="영어 대문자 또는 소문자, 숫자 포함 8자 이상으로 입력해주세요."
-              error={accountError}
+              error={errors.account?.message}
+              register={register('account', {
+                required: '아이디를 입력해주세요.',
+                pattern: {
+                  value: /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
+                  message: '아이디 형식에 맞지 않습니다.',
+                },
+              })}
             />
             <div
               className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
@@ -146,20 +80,36 @@ const BusinessSignup = () => {
             label="비밀번호"
             type="password"
             placeholder="********"
-            name="password"
-            value={businessSignupData.password}
-            onChange={handleInputChange}
             tip="숫자, 영어 대/소문자, 특수문자 포함 8자 이상으로 입력해주세요."
-            error={passwordError}
+            error={errors.password?.message}
+            register={register('password', {
+              required: '비밀번호를 입력해주세요.',
+              minLength: {
+                value: 8,
+                message: '최소 8자부터 입력 가능합니다.',
+              },
+              pattern: {
+                value:
+                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()[\]{}|;:,.<>?/~`=_+-]).{8,}$/,
+                message: '비밀번호 형식에 맞지 않습니다.',
+              },
+            })}
           />
 
           <InputForm
             label="비밀번호 확인"
             type="password"
             placeholder="********"
-            value={confirmPassword}
-            onChange={validatePasswordMatch}
-            error={passwordMatchError}
+            error={errors.passwordConfirm?.message}
+            register={register('passwordConfirm', {
+              required: '확인할 비밀번호를 입력해주세요.',
+              validate: {
+                matchPassword: value => {
+                  const password = watch('password');
+                  return password === value || '비밀번호가 일치하지 않습니다';
+                },
+              },
+            })}
           />
 
           <div className="relative flex items-center">
@@ -167,10 +117,14 @@ const BusinessSignup = () => {
               label="회사 이메일"
               type="text"
               placeholder="mediger@gmail.com"
-              name="email"
-              value={businessSignupData.email}
-              onChange={handleInputChange}
-              error={emailError}
+              error={errors.email?.message}
+              register={register('email', {
+                required: '이메일을 입력해주세요.',
+                pattern: {
+                  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                  message: '이메일 형식에 맞지 않습니다.',
+                },
+              })}
             />
             <div
               onClick={handleRequestVerification}
@@ -187,8 +141,10 @@ const BusinessSignup = () => {
                 label="인증 코드"
                 type="text"
                 placeholder="인증 코드를 입력하세요."
-                value={verificationCode}
-                onChange={handleVerificationCodeChange}
+                error={errors.code?.message}
+                register={register('code', {
+                  required: '인증 코드를 입력해주세요.',
+                })}
               />
               <div
                 onClick={handleRequestVerification}
@@ -204,49 +160,59 @@ const BusinessSignup = () => {
             label="법인명 또는 상호"
             type="text"
             placeholder="메디저"
-            name="companyName"
-            value={businessSignupData.companyName}
-            onChange={handleInputChange}
+            error={errors.companyName?.message}
+            register={register('companyName', {
+              required: '이름을 입력해주세요.',
+            })}
           />
 
           <InputForm
             label="사업자 등록 번호"
             type="text"
             placeholder="1234567890"
-            name="businessRegistrationNumber"
-            value={businessSignupData.businessRegistrationNumber}
-            onChange={handleInputChange}
             tip="하이픈(-)을 빼고 입력해주세요."
-            error={businessRegistrationNumberError}
+            error={errors.businessRegistrationNumber?.message}
+            register={register('businessRegistrationNumber', {
+              required: '사업자 등록 번호를 입력해주세요.',
+              pattern: {
+                value: /^\d{10}$/,
+                message: '사업자 등록 번호가 형식에 맞지 않습니다.',
+              },
+            })}
           />
 
           <InputForm
             label="개업일자"
             type="text"
             placeholder="2025.01.01"
-            name="businessStartDate"
-            value={businessSignupData.businessStartDate}
-            onChange={handleInputChange}
             tip="연도.월.일 형식으로 입력해주세요."
-            error={businessStartDateError}
+            error={errors.businessStartDate?.message}
+            register={register('businessStartDate', {
+              required: '개업일자를 입력해주세요.',
+              pattern: {
+                value: /^\d{4}\.(0?[1-9]|1[0-2])\.(0?[1-9]|[12][0-9]|3[01])$/,
+                message: '개업일자가 형식에 맞지 않습니다.',
+              },
+            })}
           />
 
           <InputForm
             label="대표자명"
             type="text"
             placeholder="홍길동"
-            name="businessOwnerName"
-            value={businessSignupData.businessOwnerName}
-            onChange={handleInputChange}
+            error={errors.businessOwnerName?.message}
+            register={register('businessOwnerName', {
+              required: '이름을 입력해주세요.',
+            })}
           />
-        </form>
 
-        <div
-          className="p-2 my-1 mt-10 mb-24 text-center text-white rounded-lg cursor-pointer bg-main-color-500"
-          onClick={businessSignup}
-        >
-          회원가입
-        </div>
+          <button
+            type="submit"
+            className="w-full p-3 my-1 mt-10 mb-24 text-center text-white rounded-lg cursor-pointer bg-main-color-500"
+          >
+            회원가입
+          </button>
+        </form>
 
         <div className="flex flex-col items-center justify-center px-8 mt-10">
           <p className="mb-2 text-sm text-center text-black-400">
