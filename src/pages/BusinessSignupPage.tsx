@@ -182,13 +182,22 @@ const BusinessSignup = () => {
           </div>
 
           {showVerificationInput && (
-            <InputForm
-              label="인증 코드"
-              type="text"
-              placeholder="인증 코드를 입력하세요."
-              value={verificationCode}
-              onChange={handleVerificationCodeChange}
-            />
+            <div className="relative flex items-center">
+              <InputForm
+                label="인증 코드"
+                type="text"
+                placeholder="인증 코드를 입력하세요."
+                value={verificationCode}
+                onChange={handleVerificationCodeChange}
+              />
+              <div
+                onClick={handleRequestVerification}
+                className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
+                style={{ top: '35px', right: '-90px' }}
+              >
+                인증 확인
+              </div>
+            </div>
           )}
 
           <InputForm
