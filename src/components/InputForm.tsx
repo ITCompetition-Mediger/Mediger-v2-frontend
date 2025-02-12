@@ -27,6 +27,7 @@ function InputForm({ label, type, placeholder, value, tip, error, register }: In
         placeholder={placeholder}
         className={`p-4 my-1 w-96 focus:outline-none placeholder:text-black-400 text-black-800 border-b-2 focus:bg-black-50 focus:border-main-color-500 ${inputBorderClass} transition-colors duration-600`}
         {...register}
+        autoComplete="off"
       />
 
       {error && <p className="text-sm text-red-500">{error}</p>}
