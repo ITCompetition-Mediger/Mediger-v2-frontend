@@ -77,10 +77,17 @@ export const useSignupPersonal = () => {
 };
 
 export const useSignupBusiness = () => {
+  const navigate = useNavigate();
+
   return useMutation({
     mutationFn: signupBusiness,
     onSuccess: data => {
       console.log('✅ 비즈니스 회원가입 성공:', data);
+
+      if (data) {
+        console.log('응답 헤더:', data);
+      }
+      navigate('/signup/business/details');
     },
     onError: error => {
       console.error('❌ 비즈니스 회원가입 실패:', error);
