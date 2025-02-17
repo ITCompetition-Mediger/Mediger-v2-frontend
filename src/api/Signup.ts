@@ -31,14 +31,14 @@ export const checkAccountAvailability = async (account: string): Promise<AxiosRe
   const response = await axiosInstance.post('/auth/check', null, {
     params: { account },
   });
-  return response;
+  return response.data;
 };
 
 export const sendVerificationCode = async (phone: string): Promise<AxiosResponse | null> => {
   const response = await axiosInstance.post('/auth/certification', null, {
     params: { phone },
   });
-  return response;
+  return response.data;
 };
 
 export const authVerify = async (

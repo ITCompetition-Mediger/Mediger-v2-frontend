@@ -11,9 +11,19 @@ interface InputFormProps {
   tip?: string;
   error?: string | null;
   register?: UseFormRegisterReturn;
+  disabled?: boolean;
 }
 
-function InputForm({ label, type, placeholder, value, tip, error, register }: InputFormProps) {
+function InputForm({
+  label,
+  type,
+  placeholder,
+  value,
+  tip,
+  error,
+  register,
+  disabled,
+}: InputFormProps) {
   const inputBorderClass = error
     ? 'border-red-500 focus:bg-red-100 focus:border-red-500'
     : 'border-black-400';
@@ -28,6 +38,7 @@ function InputForm({ label, type, placeholder, value, tip, error, register }: In
         className={`p-4 my-1 w-96 focus:outline-none placeholder:text-black-400 text-black-800 border-b-2 focus:bg-black-50 focus:border-main-color-500 ${inputBorderClass} transition-colors duration-600`}
         {...register}
         autoComplete="off"
+        disabled={disabled}
       />
 
       {error && <p className="text-sm text-red-500">{error}</p>}
