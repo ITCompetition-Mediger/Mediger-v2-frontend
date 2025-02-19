@@ -1,40 +1,188 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import InputForm from '../components/InputForm';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
+import {
+  authVerify,
+  checkAccountAvailability,
+  sendVerificationCode,
+  useSignupBusiness,
+} from '../api/Signup';
+import checkImg from '../assets/check.png';
+import { AxiosError } from 'axios';
 
 interface BusinessSignupForm {
   name: string;
   account: string;
   password: string;
   email: string;
-  businessRegistrationNumber: string;
-  businessStartDate: string;
-  businessOwnerName: string;
+  registrationNumber: string;
+  startDate: string;
+  ownerName: string;
   companyName: string;
   passwordConfirm: string;
   code: string;
+  accountCheck: boolean;
+  codeCheck: boolean;
 }
 
 const BusinessSignup = () => {
-  const navigate = useNavigate();
+  const { mutate: signupBusiness } = useSignupBusiness();
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors },
-  } = useForm<BusinessSignupForm>();
-
-  const onSubmit: SubmitHandler<BusinessSignupForm> = data => {
-    console.log(data);
-    navigate('/signup/business/details');
-  };
-
+  } = useForm<BusinessSignupForm>({
+    defaultValues: { accountCheck: false, codeCheck: false },
+  });
   const [showVerificationInput, setShowVerificationInput] = useState<boolean>(false);
+  const [isAccountCheck, setIsAccountCheck] = useState<boolean>(false);
+  const [isCodeCheck, setIsCodeCheck] = useState<boolean>(false);
 
-  const handleRequestVerification = () => {
-    setShowVerificationInput(true);
+  const handleCheckAccount = async () => {
+    const account = watch('account');
+
+    if (!account) {
+      setError('account', { type: 'manual', message: '아이디를 입력해주세요.' });
+      return;
+    }
+
+    if (!account.match(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/)) {
+      setError('account', { type: 'manual', message: '아이디 형식에 맞지 않습니다.' });
+      return;
+    }
+
+    clearErrors('account');
+
+    try {
+      const isAvailable = await checkAccountAvailability(account);
+      if (isAvailable) {
+        setIsAccountCheck(true);
+        setValue('accountCheck', true);
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ codeName?: string }>;
+      if (axiosError.response?.data.codeName === 'VA002') {
+        console.log('Response Data:', axiosError.response.data);
+        setError('account', { type: 'manual', message: '이미 존재하는 아이디입니다.' });
+      } else {
+        setError('account', { type: 'manual', message: '문제가 발생했습니다. 다시 시도해주세요.' });
+      }
+
+      setValue('accountCheck', false);
+    }
   };
+
+  const handleSendVerificationCode = () => {
+    const email = watch('email');
+
+    if (!email) {
+      setError('email', { type: 'manual', message: '이메일을 입력해주세요.' });
+      return;
+    }
+
+    if (!email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
+      setError('email', { type: 'manual', message: '이메일 형식에 맞지 않습니다.' });
+      return;
+    }
+
+    clearErrors('email');
+
+    setShowVerificationInput(true);
+    sendVerificationCode(email);
+  };
+
+  const handleAuthVerify = async () => {
+    const email = watch('email');
+    const code = watch('code');
+
+    if (!code) {
+      setError('code', { type: 'manual', message: '인증번호를 입력해주세요.' });
+      return;
+    }
+
+    try {
+      const isAvailable = await authVerify(email, code);
+      if (isAvailable) {
+        setIsCodeCheck(true);
+        setValue('codeCheck', true);
+        clearErrors('code');
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ codeName?: string }>;
+      if (axiosError.response?.data.codeName === 'CF001') {
+        console.log('Response Data:', axiosError.response.data);
+        setError('code', { type: 'manual', message: '인증 번호가 일치하지 않습니다.' });
+      } else {
+        setError('code', { type: 'manual', message: '문제가 발생했습니다. 다시 시도해주세요.' });
+      }
+
+      setValue('codeCheck', false);
+    }
+  };
+
+  const onSubmit: SubmitHandler<BusinessSignupForm> = ({
+    account,
+    password,
+    name,
+    email,
+    registrationNumber,
+    startDate,
+    ownerName,
+    companyName,
+    accountCheck,
+    codeCheck,
+  }) => {
+    if (!accountCheck) {
+      setError('account', { type: 'manual', message: '아이디 중복 확인을 해주세요.' });
+      return;
+    }
+    if (!codeCheck && !showVerificationInput) {
+      setError('email', { type: 'manual', message: '이메일 인증을 해주세요.' });
+      return;
+    }
+    if (!codeCheck && showVerificationInput) {
+      setError('code', { type: 'manual', message: '이메일 인증을 해주세요.' });
+      return;
+    }
+
+    const postData = {
+      account,
+      password,
+      name,
+      email,
+      registrationNumber,
+      startDate,
+      ownerName,
+      companyName,
+    };
+    signupBusiness(postData);
+  };
+
+  // 재인증
+  const account = watch('account');
+  useEffect(() => {
+    setIsAccountCheck(false);
+    setValue('accountCheck', false);
+  }, [account, setValue]);
+
+  const code = watch('code');
+  useEffect(() => {
+    setIsCodeCheck(false);
+    setValue('codeCheck', false);
+  }, [code, setValue]);
+
+  const email = watch('email');
+  useEffect(() => {
+    setIsCodeCheck(false);
+    setValue('codeCheck', false);
+    setShowVerificationInput(false);
+    setValue('code', '');
+  }, [email, setValue]);
 
   return (
     <div className="w-full h-[calc(100vh-3.75rem)] bg-white flex items-center justify-start flex-col">
@@ -68,12 +216,22 @@ const BusinessSignup = () => {
                 },
               })}
             />
-            <div
-              className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
-              style={{ top: '35px', right: '-90px' }}
-            >
-              중복 확인
-            </div>
+            {isAccountCheck ? (
+              <img
+                src={checkImg}
+                alt="인증완료"
+                className="absolute h-auto w-7"
+                style={{ top: '35px', right: '-50px' }}
+              />
+            ) : (
+              <div
+                className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
+                style={{ top: '35px', right: '-90px' }}
+                onClick={handleCheckAccount}
+              >
+                중복 확인
+              </div>
+            )}
           </div>
 
           <InputForm
@@ -126,13 +284,15 @@ const BusinessSignup = () => {
                 },
               })}
             />
-            <div
-              onClick={handleRequestVerification}
-              className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
-              style={{ top: '35px', right: '-90px' }}
-            >
-              인증 코드
-            </div>
+            {!isCodeCheck && (
+              <div
+                onClick={handleSendVerificationCode}
+                className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
+                style={{ top: '35px', right: '-90px' }}
+              >
+                인증 코드
+              </div>
+            )}
           </div>
 
           {showVerificationInput && (
@@ -145,14 +305,24 @@ const BusinessSignup = () => {
                 register={register('code', {
                   required: '인증 코드를 입력해주세요.',
                 })}
+                disabled={isCodeCheck}
               />
-              <div
-                onClick={handleRequestVerification}
-                className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
-                style={{ top: '35px', right: '-90px' }}
-              >
-                인증 확인
-              </div>
+              {isCodeCheck ? (
+                <img
+                  src={checkImg}
+                  alt="인증완료"
+                  className="absolute h-auto w-7"
+                  style={{ top: '35px', right: '-50px' }}
+                />
+              ) : (
+                <div
+                  onClick={handleAuthVerify}
+                  className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
+                  style={{ top: '35px', right: '-90px' }}
+                >
+                  인증 확인
+                </div>
+              )}
             </div>
           )}
 
@@ -171,8 +341,8 @@ const BusinessSignup = () => {
             type="text"
             placeholder="1234567890"
             tip="하이픈(-)을 빼고 입력해주세요."
-            error={errors.businessRegistrationNumber?.message}
-            register={register('businessRegistrationNumber', {
+            error={errors.registrationNumber?.message}
+            register={register('registrationNumber', {
               required: '사업자 등록 번호를 입력해주세요.',
               pattern: {
                 value: /^\d{10}$/,
@@ -184,13 +354,13 @@ const BusinessSignup = () => {
           <InputForm
             label="개업일자"
             type="text"
-            placeholder="2025.01.01"
-            tip="연도.월.일 형식으로 입력해주세요."
-            error={errors.businessStartDate?.message}
-            register={register('businessStartDate', {
+            placeholder="2025-01-01"
+            tip="연도-월-일 형식으로 입력해주세요."
+            error={errors.startDate?.message}
+            register={register('startDate', {
               required: '개업일자를 입력해주세요.',
               pattern: {
-                value: /^\d{4}\.(0?[1-9]|1[0-2])\.(0?[1-9]|[12][0-9]|3[01])$/,
+                value: /^\d{4}-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$/,
                 message: '개업일자가 형식에 맞지 않습니다.',
               },
             })}
@@ -200,8 +370,8 @@ const BusinessSignup = () => {
             label="대표자명"
             type="text"
             placeholder="홍길동"
-            error={errors.businessOwnerName?.message}
-            register={register('businessOwnerName', {
+            error={errors.ownerName?.message}
+            register={register('ownerName', {
               required: '이름을 입력해주세요.',
             })}
           />

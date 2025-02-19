@@ -1,7 +1,15 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import InputForm from '../components/InputForm';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
+import {
+  authVerify,
+  checkAccountAvailability,
+  sendVerificationCode,
+  useSignupPersonal,
+} from '../api/Signup';
+import checkImg from '../assets/check.png';
+import { AxiosError } from 'axios';
 
 interface PersonalSignupForm {
   account: string;
@@ -11,26 +19,161 @@ interface PersonalSignupForm {
   phone: string;
   passwordConfirm: string;
   code: string;
+  accountCheck: boolean;
+  codeCheck: boolean;
 }
 
 const PersonalSignup = () => {
-  const navigate = useNavigate();
+  const { mutate: signupPersonal } = useSignupPersonal();
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors },
-  } = useForm<PersonalSignupForm>();
+  } = useForm<PersonalSignupForm>({
+    defaultValues: { accountCheck: false, codeCheck: false },
+  });
   const [showVerificationInput, setShowVerificationInput] = useState<boolean>(false);
+  const [isAccountCheck, setIsAccountCheck] = useState<boolean>(false);
+  const [isCodeCheck, setIsCodeCheck] = useState<boolean>(false);
 
-  const handleRequestVerification = () => {
+  const handleCheckAccount = async () => {
+    const account = watch('account');
+
+    if (!account) {
+      setError('account', { type: 'manual', message: '아이디를 입력해주세요.' });
+      return;
+    }
+
+    if (!account.match(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,}$/)) {
+      setError('account', { type: 'manual', message: '아이디 형식에 맞지 않습니다.' });
+      return;
+    }
+
+    clearErrors('account');
+
+    try {
+      const isAvailable = await checkAccountAvailability(account);
+      if (isAvailable) {
+        setIsAccountCheck(true);
+        setValue('accountCheck', true);
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ codeName?: string }>;
+      if (axiosError.response?.data.codeName === 'VA002') {
+        console.log('Response Data:', axiosError.response.data);
+        setError('account', { type: 'manual', message: '이미 존재하는 아이디입니다.' });
+      } else {
+        setError('account', { type: 'manual', message: '문제가 발생했습니다. 다시 시도해주세요.' });
+      }
+
+      setValue('accountCheck', false);
+    }
+  };
+
+  const handleSendVerificationCode = () => {
+    const phone = watch('phone');
+
+    if (!phone) {
+      setError('phone', { type: 'manual', message: '전화번호를 입력해주세요.' });
+      return;
+    }
+
+    if (!phone.match(/^\d{11}$/)) {
+      setError('phone', { type: 'manual', message: '전화번호 형식에 맞지 않습니다.' });
+      return;
+    }
+
+    clearErrors('phone');
+
     setShowVerificationInput(true);
+    sendVerificationCode(phone);
   };
 
-  const onSubmit: SubmitHandler<PersonalSignupForm> = data => {
-    console.log(data);
-    navigate('/signup/personal/details');
+  const handleAuthVerify = async () => {
+    const phone = watch('phone');
+    const code = watch('code');
+
+    if (!code) {
+      setError('code', { type: 'manual', message: '인증번호를 입력해주세요.' });
+      return;
+    }
+
+    try {
+      const isAvailable = await authVerify(phone, code);
+      if (isAvailable) {
+        setIsCodeCheck(true);
+        setValue('codeCheck', true);
+        clearErrors('code');
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ codeName?: string }>;
+      if (axiosError.response?.data.codeName === 'CF001') {
+        console.log('Response Data:', axiosError.response.data);
+        setError('code', { type: 'manual', message: '인증 번호가 일치하지 않습니다.' });
+      } else {
+        setError('code', { type: 'manual', message: '문제가 발생했습니다. 다시 시도해주세요.' });
+      }
+
+      setValue('codeCheck', false);
+    }
   };
+
+  const onSubmit: SubmitHandler<PersonalSignupForm> = ({
+    account,
+    password,
+    name,
+    email,
+    phone,
+    accountCheck,
+    codeCheck,
+  }) => {
+    if (!accountCheck) {
+      setError('account', { type: 'manual', message: '아이디 중복 확인을 해주세요.' });
+      return;
+    }
+    if (!codeCheck && !showVerificationInput) {
+      setError('phone', { type: 'manual', message: '전화번호 인증을 해주세요.' });
+      return;
+    }
+    if (!codeCheck && showVerificationInput) {
+      setError('code', { type: 'manual', message: '전화번호 인증을 해주세요.' });
+      return;
+    }
+
+    const postData = {
+      account,
+      password,
+      name,
+      email,
+      phone,
+    };
+    signupPersonal(postData);
+  };
+
+  // 재인증
+  const account = watch('account');
+  useEffect(() => {
+    setIsAccountCheck(false);
+    setValue('accountCheck', false);
+  }, [account, setValue]);
+
+  const code = watch('code');
+  useEffect(() => {
+    setIsCodeCheck(false);
+    setValue('codeCheck', false);
+  }, [code, setValue]);
+
+  const phone = watch('phone');
+  useEffect(() => {
+    setIsCodeCheck(false);
+    setValue('codeCheck', false);
+    setShowVerificationInput(false);
+    setValue('code', '');
+  }, [phone, setValue]);
 
   return (
     <div className="w-full h-[calc(100vh-3.75rem)] bg-white flex items-center justify-start flex-col">
@@ -64,12 +207,22 @@ const PersonalSignup = () => {
                 },
               })}
             />
-            <div
-              className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
-              style={{ top: '35px', right: '-90px' }}
-            >
-              중복 확인
-            </div>
+            {isAccountCheck ? (
+              <img
+                src={checkImg}
+                alt="인증완료"
+                className="absolute h-auto w-7"
+                style={{ top: '35px', right: '-50px' }}
+              />
+            ) : (
+              <div
+                className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
+                style={{ top: '35px', right: '-90px' }}
+                onClick={handleCheckAccount}
+              >
+                중복 확인
+              </div>
+            )}
           </div>
 
           <InputForm
@@ -123,13 +276,15 @@ const PersonalSignup = () => {
                 },
               })}
             />
-            <div
-              onClick={handleRequestVerification}
-              className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
-              style={{ top: '35px', right: '-90px' }}
-            >
-              인증 번호
-            </div>
+            {!isCodeCheck && (
+              <div
+                onClick={handleSendVerificationCode}
+                className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
+                style={{ top: '35px', right: '-90px' }}
+              >
+                인증 번호
+              </div>
+            )}
           </div>
 
           {showVerificationInput && (
@@ -142,14 +297,24 @@ const PersonalSignup = () => {
                 register={register('code', {
                   required: '인증 코드를 입력해주세요.',
                 })}
+                disabled={isCodeCheck}
               />
-              <div
-                onClick={handleRequestVerification}
-                className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
-                style={{ top: '35px', right: '-90px' }}
-              >
-                인증 확인
-              </div>
+              {isCodeCheck ? (
+                <img
+                  src={checkImg}
+                  alt="인증완료"
+                  className="absolute h-auto w-7"
+                  style={{ top: '35px', right: '-50px' }}
+                />
+              ) : (
+                <div
+                  onClick={handleAuthVerify}
+                  className="absolute px-3 py-2 text-sm rounded-lg cursor-pointer text-black-400 hover:bg-main-color-100 hover:text-main-color-800 bg-black-100"
+                  style={{ top: '35px', right: '-90px' }}
+                >
+                  인증 확인
+                </div>
+              )}
             </div>
           )}
 
