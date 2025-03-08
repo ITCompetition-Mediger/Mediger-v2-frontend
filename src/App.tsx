@@ -6,6 +6,7 @@ import PersonalSignupDetailsPage from './pages/PersonalSignupDetailsPage.tsx';
 import BusinessSignupPage from './pages/BusinessSignupPage.tsx';
 import BusinessSignupDetailsPage from './pages/BusinessSignupDetailsPage.tsx';
 import MainPage from './pages/MainPage.tsx';
+import SearchListPage from './pages/SearchListPage.tsx';
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/signup/personal/details" Component={PersonalSignupDetailsPage} />
         <Route path="/signup/business" Component={BusinessSignupPage} />
         <Route path="/signup/business/details" Component={BusinessSignupDetailsPage} />
+        <Route path="/search" Component={SearchListPage} />
       </Routes>
     </Router>
   );
