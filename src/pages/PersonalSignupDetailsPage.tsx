@@ -1,23 +1,36 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-const healthCategories = [
-  '필수 건강',
-  '활력, 피로',
-  '면역력',
-  '모발, 손톱',
-  '스트레스, 수면',
-  '여성 건강',
-  '관절, 뼈, 근육',
-  '간 건강',
-  '콜레스테롤',
-  '당 조절',
-  '장 건강, 위 건강',
-  '체지방 감소',
-  '피부 건강',
-  '뇌 건강, 눈',
-  '수험생 건강',
-];
+const gendersMap = {
+  MALE: '남자',
+  FEMALE: '여자',
+};
+
+const ageGroupsMap = {
+  TEENS_TWENTIES: '~20대',
+  THIRTIES: '30대',
+  FORTIES: '40대',
+  FIFTIES: '50대',
+  SIXTIES_PLUS: '60대~',
+};
+
+const healthCategoriesMap = {
+  ESSENTIAL: '필수 건강',
+  ENERGY: '에너지',
+  STRONG_IMMUNITY: '면역 튼튼',
+  HAIR_GROWTH: 'EM 44',
+  GOOD_SLEEP: '꿀잠',
+  MENSTRUAL_DISCOMFORT: '월경 전 불편',
+  BONE_DIAGNOSIS: '뼈진단',
+  KIDNEY: '애주가',
+  BLOOD_VESSELS: '혈관 튼튼',
+  BLOOD_SUGAR: '혈당 관리',
+  DIGESTION: '편한 소화',
+  DIET: '다이어트',
+  SKINCARE: '피부 미용',
+  FOCUS: '집중',
+  EXAMINEE: '수험생 건강',
+};
 
 interface PersonalSignupDetailForm {
   gender: string | null;
@@ -77,13 +90,13 @@ const PersonalSignupDetails = () => {
         {/* 성별 */}
         <p className="mb-2 text-sm text-black-400">성별</p>
         <div className="flex gap-2 mb-8">
-          {['남자', '여자'].map(gender => (
+          {Object.entries(gendersMap).map(([key, value]) => (
             <div
-              key={gender}
-              className={`flex-1 p-2 text-sm text-center border rounded-lg cursor-pointer ${personalSignupDetailData.gender === gender ? 'bg-main-color-100 text-main-color-600 border-main-color-200' : 'bg-black-100 border-black-200 text-black-400'}  transition-colors duration-600`}
-              onClick={() => handleGenderChange(gender)}
+              key={key}
+              className={`flex-1 p-2 text-sm text-center border rounded-lg cursor-pointer ${personalSignupDetailData.gender === key ? 'bg-main-color-100 text-main-color-600 border-main-color-200' : 'bg-black-100 border-black-200 text-black-400'}  transition-colors duration-600`}
+              onClick={() => handleGenderChange(key)}
             >
-              {gender}
+              {value}
             </div>
           ))}
         </div>
@@ -91,13 +104,13 @@ const PersonalSignupDetails = () => {
         {/* 연령대 */}
         <p className="mb-2 text-sm text-black-400">연령대</p>
         <div className="flex gap-2 mb-8">
-          {['~20대', '30대', '40대', '50대', '60대~'].map(age => (
+          {Object.entries(ageGroupsMap).map(([key, value]) => (
             <div
-              key={age}
-              className={`flex-1 p-2 text-sm text-center border rounded-lg cursor-pointer ${personalSignupDetailData.ageGroup === age ? 'bg-main-color-100 text-main-color-600 border-main-color-200' : 'bg-black-100 border-black-200 text-black-400'}  transition-colors duration-600`}
-              onClick={() => handleAgeGroupChange(age)}
+              key={key}
+              className={`flex-1 p-2 text-sm text-center border rounded-lg cursor-pointer ${personalSignupDetailData.ageGroup === key ? 'bg-main-color-100 text-main-color-600 border-main-color-200' : 'bg-black-100 border-black-200 text-black-400'}  transition-colors duration-600`}
+              onClick={() => handleAgeGroupChange(key)}
             >
-              {age}
+              {value}
             </div>
           ))}
         </div>
@@ -113,13 +126,13 @@ const PersonalSignupDetails = () => {
             </span>
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {healthCategories.map(category => (
+            {Object.entries(healthCategoriesMap).map(([key, value]) => (
               <div
-                key={category}
-                className={`flex-1 p-2 text-center border rounded-lg cursor-pointer ${personalSignupDetailData.healthConditions.includes(category) ? 'bg-main-color-100 text-main-color-600 border-main-color-200' : 'bg-black-100 border-black-200 text-black-400'}  transition-colors duration-600`}
-                onClick={() => handleHealthCategoryChange(category)}
+                key={key}
+                className={`flex-1 p-2 text-center border rounded-lg cursor-pointer ${personalSignupDetailData.healthConditions.includes(key) ? 'bg-main-color-100 text-main-color-600 border-main-color-200' : 'bg-black-100 border-black-200 text-black-400'}  transition-colors duration-600`}
+                onClick={() => handleHealthCategoryChange(key)}
               >
-                {category}
+                {value}
               </div>
             ))}
           </div>

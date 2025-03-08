@@ -2,6 +2,24 @@ import { Link, useNavigate } from 'react-router-dom';
 import InputForm from '../components/InputForm';
 import { useForm, SubmitHandler } from 'react-hook-form';
 
+const banksMap = {
+  KB_KOOKMIN: 'KB국민은행',
+  SHINHAN: '신한은행',
+  WOOREE: '우리은행',
+  KEB_HANA: 'KEB하나은행',
+  SC_FIRST_BANK: 'SC제일은행',
+  CITIBANK: '씨티은행',
+  SH_SUHYEOP: 'Sh수협은행',
+  NH_NONGHYUP: 'NH농협은행',
+  KAKAO_BANK: '카카오뱅크',
+  K_BANK: '케이뱅크',
+  TOSS_BANK: '토스뱅크',
+  BANK_OF_KOREA: '한국은행',
+  EXIM_BANK: '수출입은행',
+  KDB_BANK: 'KDB산업은행',
+  IBK_CORPORATE: 'IBK기업은행',
+};
+
 interface BusinessSignupDetailsForm {
   businessAddress: string;
   onlineSalesRegistrationNumber: string;
@@ -65,24 +83,8 @@ const BusinessSignupDetails = () => {
             })}
             className="p-4 mb-8 transition-colors bg-white border-b-2 w-96 focus:outline-none placeholder:text-black-400 text-black-800 focus:border-main-color-500 border-black-400 duration-600"
           >
-            {[
-              'KB국민은행',
-              '신한은행',
-              '우리은행',
-              'KEB하나은행',
-              'SC제일은행',
-              '씨티은행',
-              'Sh수협은행',
-              'NH농협은행',
-              '카카오뱅크',
-              '케이뱅크',
-              '토스뱅크',
-              '한국은행',
-              '수출입은행',
-              'KDB산업은행',
-              'IBK기업은행',
-            ].map(bank => (
-              <option value={bank}>{bank}</option>
+            {Object.entries(banksMap).map(([key, value]) => (
+              <option value={key}>{value}</option>
             ))}
           </select>
           {errors.settlementBank && <p className="text-red-500">{errors.settlementBank.message}</p>}
